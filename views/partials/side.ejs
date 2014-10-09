@@ -1,0 +1,212 @@
+﻿
+
+
+<style>
+
+
+.side-inputs{
+	margin:15px;
+}
+
+    #search-device {
+         width:100%;
+    }
+
+    .search-result {
+        min-height:20px;
+       
+        background:white;
+        position:absolute;
+
+        border:solid thin gray;
+    }
+
+    .search-result-row {
+        height:30px; 
+        text-align:right;
+        vertical-align: middle;
+        padding-top:8px;
+        padding-right:5px;
+        text-overflow: ellipsis;
+        cursor:pointer;
+    }
+
+
+
+        .search-result-row.hovered{
+            background:rgba(134, 245, 248, 0.45);
+            
+        }
+
+        .search-result-row:last-child {
+
+            border-bottom:hidden;
+        }
+
+
+    .selectedDevicePanel {
+        width:100%;
+        margin-top:50px;
+        border:solid thin gray;
+        background:white;
+        
+
+            
+    }
+
+    .selectedDeviceRow {
+         width:100%;
+         float:right;
+
+    }
+
+        .selectedDeviceRow .selectedDeviceRowItem {
+            float:right;
+        }
+        .selectedDeviceRow .selectedDeviceRowTitle {
+                     color:darkgray;
+        }
+
+</style>
+
+
+<Script>
+
+    $(document).ready(function () {
+        
+        $(".search-result").hide();
+
+        //$('#search-device').keyup(loadResult);
+        $('#search-device').click(loadResult);
+        $('#search-device').change(loadResult);
+
+        function loadResult(e) {
+
+            $.ajax({
+                url: "http://<%= serverAddress %>/getDevices?query=" + $('#search-device').val(),
+                type: "GET",
+                success: function (data, textStatus, jqXHR) {
+
+                    console.log(data);
+
+                    var pos = $('#search-device').position();
+
+                    var top = pos.top + $('#search-device').height() + 1;
+                    var left = pos.left;
+
+                    $("#device_search-result").css({ 'top': top, 'left': left, 'width': $('#search-device').width()+2});
+                    
+                    $("#device_search-result").fadeIn();
+
+                    $("#device_search-result").html('');
+
+                    for (var i = 0; i < data.length && i < 10; i++) {
+                        var div = $('<div class="search-result-row" deviceId="' + data[i].device_id + '" deviceName="' + data[i].device_name + '" deviceNumber="' + data[i].device_number + '" >' + data[i].device_name + '</div>').appendTo($("#device_search-result")).fadeIn(500 * i);
+
+                        if (i == 0)
+                            div.addClass('hovered');
+                    }
+
+                    $(".search-result-row").mousemove(function () {
+                        $(".search-result-row").removeClass('hovered');
+                        $(this).addClass('hovered');
+                    });
+                    $(".search-result-row").mouseout(function () {
+                        $(this).removeClass('hovered');
+                    });
+
+                    $(".search-result-row").click(function () {
+                        deviceSelected($(this));
+                    });
+                }
+            });
+
+        }
+
+        
+
+        $('#search-device').focusout(function () {
+            $("#device_search-result").fadeOut();
+        });
+
+        $('#search-device').keyup(function (e) {
+
+
+            if (e.keyCode === 40) {
+
+                var elem = $("#device_search-result").find('.search-result-row.hovered').first();
+                var next = elem.next('.search-result-row');
+
+                if (!next.length)
+                    next = $("#device_search-result").find('.search-result-row').first();
+
+                elem.removeClass('hovered');
+                next.addClass('hovered');
+                
+
+            } else if (e.keyCode === 38) {
+                
+                var elem = $("#device_search-result").find('.search-result-row.hovered').first();
+                var pre = elem.prev('.search-result-row');
+
+                if (!pre.length)
+                    pre = $("#device_search-result").find('.search-result-row').last();
+
+                elem.removeClass('hovered');
+                pre.addClass('hovered');
+                
+            } else if (e.keyCode === 13) {
+
+                var elem = $("#device_search-result").find('.search-result-row.hovered').first();
+                deviceSelected(elem);
+
+            } else {
+
+                loadResult(e);
+
+            }
+        });
+
+
+        
+
+        function deviceSelected(elem) {
+
+            $('#selectedDeviceName').html(elem.attr('deviceName'));
+            $('#selectedDeviceNumber').html(elem.attr('deviceNumber'));
+
+            routeDevice(elem.attr('deviceId'));
+
+            $(".search-result").hide();
+        }
+
+
+
+
+
+    });
+
+
+</script>
+
+<div class="side-inputs">
+
+<input type="search" id="search-device" />
+<div class="search-result" id="device_search-result"></div>
+
+<div id="selectedDevice" class="selectedDevicePanel">
+
+    <div class="selectedDeviceRow">
+        <span class="selectedDeviceRowItem selectedDeviceRowTitle">نام دستگاه :</span>
+        <span class="selectedDeviceRowItem" id="selectedDeviceName"></span>
+    </div>
+    <div class="selectedDeviceRow">
+        <span class="selectedDeviceRowItem selectedDeviceRowTitle">شماره دستگاه :</span>
+        <span class="selectedDeviceRowItem" id="selectedDeviceNumber"></span>
+    </div>
+
+
+    <br style="clear:both" />
+</div>
+
+</div >

@@ -1,0 +1,324 @@
+
+  <style>
+
+    .map{
+    width:100%;
+        height:100%;
+        background:#f1eee8;
+    }
+
+    .olTileImage {
+        -webkit-transition: opacity 0.1s linear;
+        -moz-transition: opacity 0.1s linear;
+        -o-transition: opacity 0.1s linear;
+        transition: opacity 0.1s linear;
+    }
+
+</style>
+
+
+
+<div id="map" class="map"></div>
+
+<table class="mouse_location_sample">
+    <tr>
+        <td>
+            <span id="epsg1">0.0</span> <br/>
+    Lon: <strong><span id="lon1">0.0</span></strong> <br/>
+Lat: <strong><span id="lat1">0.0</span></strong> <br/>
+</td>
+<td>
+<span id="epsg2">0.0</span> <br/>
+    Lon: <strong><span id="lon2">0.0</span></strong> <br/>
+Lat: <strong><span id="lat2">0.0</span></strong> <br/>
+</td>
+</tr>
+</table>
+
+<button id="refresh" type="button" style="position:absolute; bottom:20px; right:20px; z-index:20000; padding:20px;">refresh</button>
+
+<script type="text/javascript">
+
+
+
+  $(document).ready(function () {
+
+      var colors = randomColor({luminosity: 'bright',count: 100});
+
+      //var parent = $('#map').getParent();
+      //$('#map').height($(parent).height());
+
+      var map = new OpenLayers.Map({
+          div: "map",
+          allOverlays: true,
+          layers: [
+          new OpenLayers.Layer.OSM("MyTiles", "tiles/${z}/${x}/${y}.png", {
+              numZoomLevels: 20,
+              isBaseLayer: false
+          })
+          ]
+      });
+      map.setCenter(new OpenLayers.LonLat(52.5198, 29.6164).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), 8);
+
+
+      map.events.register('mousemove', map, mouseMoveListener);
+    
+      function mouseMoveListener(event) {
+          var lonlat = map.getLonLatFromPixel(event.xy);
+
+          OpenLayers.Util.getElement("lon1").innerHTML = lonlat.lon;
+          OpenLayers.Util.getElement("lat1").innerHTML = lonlat.lat;
+        
+          lonlat.transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+          OpenLayers.Util.getElement("lon2").innerHTML = lonlat.lon;
+          OpenLayers.Util.getElement("lat2").innerHTML = lonlat.lat;
+      }
+ 
+
+
+      var pointId = 0;
+
+      function poi(device, lat, long, date, speed, icon) {
+
+          var fpoint = new OpenLayers.Geometry.Point(long,lat).transform(
+          new OpenLayers.Projection("EPSG:4326"),  new OpenLayers.Projection("EPSG:900913"));
+
+          var attributes = {
+              'name': device,
+              'lon': long,
+              'lat': lat,
+              'date' : date,
+              'speed' : speed
+          };
+
+          var marker = new OpenLayers.Feature.Vector(fpoint, attributes, {
+              externalGraphic: icon,
+              graphicYOffset:-28,
+              graphicWidth: 30,
+              graphicHeight: 30,
+              fillOpacity: 1
+          });
+
+          marker.id = "devicePoint" + (pointId++);
+
+          return marker;
+      };
+
+
+
+
+      function pointOnMap(layerId, lat, lon,date, desc, icon) {
+
+          var point =  poi(layerId, lat, lon,date , 80, icon||"img/current_point.png");
+
+          getLayerPoint('layer' + layerId).addFeatures([point]);
+
+      }
+
+      function drawLine(layerId, from, to){
+
+          var start_point = new OpenLayers.Geometry.Point(from.lon, from.lat);
+          start_point.transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          new OpenLayers.Projection("EPSG:900913")
+          );
+
+          var end_point = new OpenLayers.Geometry.Point(to.lon, to.lat);
+          end_point.transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          new OpenLayers.Projection("EPSG:900913")
+          );
+
+          getLayerLine('linelayer' + layerId).addFeatures([new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString([start_point, end_point]))]);
+          
+      }
+
+      function drawLineArray(array){
+
+          var points = [];
+
+          for (var i = 0; i < array.length; i++) {
+                
+              var p = array[i];
+
+              var fp = new OpenLayers.Geometry.Point(p.lon, p.lat);
+              fp.transform(
+              new OpenLayers.Projection("EPSG:4326"),
+              new OpenLayers.Projection("EPSG:900913")
+              );
+
+              points.push(fp);
+          }
+
+          getLayerLine().addFeatures([new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points))]);
+          
+      }
+
+      $("#refresh").click(function () {
+
+          //getLayerPoint('layer1').destroyFeatures();
+          //getLayerLine('linelayer1').destroyFeatures();
+
+          removePointLayer();
+
+          $.ajax({
+              url: "http://<%= serverAddress %>/getLocations",
+              type: "GET",
+              success: function (data, textStatus, jqXHR) {
+
+                  
+                  var lat;
+                  var lon
+                  var loc;
+
+                  for (var k = 0; k < data.length; k++) {
+
+                      var device = data[k];
+                      var device_id = device.device_id;
+                      var locations = device.locations;
+
+                      var linePoints = [];
+
+                      for (var i = 0; i < locations.length; i++) {
+
+                          loc = locations[i];
+
+                          lat = loc.location_lat;
+                          lon = loc.location_lon;
+                        
+                          loc.lat = lat;
+                          loc.lon = lon;
+
+                          if(i==0){
+ 
+                              pointOnMap(loc.location_device_id, lat, lon, loc.location_date ,"","img/start_point.png");
+                          }
+
+                          loc;
+                          linePoints.push(loc);
+                      }
+
+                      pointOnMap(loc.location_device_id, lat, lon, loc.location_date, "");
+                     
+                      drawLineArray(linePoints);
+
+                  }
+
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+
+              }
+          });
+              
+
+      });
+
+      var myControl;
+
+      var layer;
+
+      function getLayerPoint(){
+
+          if(!layer){
+              //new layer
+              layer = new OpenLayers.Layer.Vector('pointLayer');
+
+              myControl = new OpenLayers.Control.SelectFeature(layer, {
+                  hover: true,
+                  highlightOnly: true,
+                  eventListeners: {
+                      featurehighlighted:  function(olEvent){
+                          var attr = olEvent.feature.attributes;
+
+                          $('#' + olEvent.feature.geometry.id).qtip({
+                              content: {
+                                  text: $('<div style="font-size:16px; font-family:tahoma; line-height: 150%;"><span>device name : '+ 
+                                      attr.name +'</span><br /><span> location: '+ attr.lat +' , '+ attr.lon +' </span><br /><span> date : '+ 
+                                      attr.date +' </span></div>')
+                              },
+                              position: {
+                                  my: 'bottom center',
+                                  at: 'top center'
+                              },
+                              style: {
+                                  classes: 'qtip-green'
+                              }
+                          });
+                          $('#' + olEvent.feature.geometry.id).qtip('show');
+
+                      },
+                      featureunhighlighted: function(olEvent){
+                          $('#' + olEvent.feature.geometry.id).qtip('hide');
+                      }
+                  }
+              });
+              
+              map.addLayer(layer);
+             
+              map.addControl(myControl);
+              myControl.activate();
+          }
+
+          return layer;
+
+      }
+
+      function removePointLayer(){
+          getLayerPoint().destroyFeatures();
+      }
+
+      function removeLineLayer(){
+          getLayerLine().destroyFeatures();
+          
+      }
+
+      var lineLayer;
+
+      function getLayerLine(){
+
+         // var layer = layerDict[layerName];
+          var layer = lineLayer;
+
+          if(!layer){
+              //new layer
+              layer = new OpenLayers.Layer.Vector('lineLayer');
+
+              layer.events.register('beforefeatureadded', layer, setFeatureStyle);
+
+              map.addLayer(layer);
+
+              function setFeatureStyle(event) {
+                  var strokeColor = colors[Math.floor(Math.random() * colors.length)];
+                  var strokeWidth = 6;
+                  var strokeOpacity = 100;
+                  var pointRadius = 2;
+        
+                  var style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+                  style.strokeColor = strokeColor;
+                  style.strokeWidth = strokeWidth;
+                  style.strokeOpacity = strokeOpacity;
+                  style.pointRadius = pointRadius;
+        
+                  event.feature.style = style;
+
+                  //console.log(event.feature);
+              }
+          }
+
+          return layer;
+
+      }
+
+  });
+
+
+
+  $(document).ready(function () {
+
+      window.routeDevice = function(id) {
+          alert(id);
+
+      }
+
+  });
+</script>
