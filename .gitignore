@@ -8,6 +8,7 @@
 bin/
 tmp/
 public/tiles
+node_modules
 *.tmp
 *.bak
 *.swp
