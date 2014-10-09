@@ -13,6 +13,8 @@ mysql = require('mysql')
 
 var serverAddress = "79.175.166.110:" + port;
 //var serverAddress = "127.0.0.1:" + port;
+
+
 var title = "پیشگامان آسیا";
 
 var app = express();
@@ -261,9 +263,12 @@ app.get('/tiles/[0-9]+/[0-9]+/[0-9]+\.png', function (req, res) {
 
 app.get('/getLocations', function (req, res) {
 
-    console.log('2');
+    var deviceId = req.query.device_id;
 
-    var query = connection.query("SELECT * FROM location ORDER BY  location_device_id ASC ", function (err, rows) {
+    var query = connection.query("SELECT * FROM location, device where location_device_id = device_id and location_device_id in (?) ORDER BY location_device_id ASC", [deviceId], function (err, rows) {
+
+
+        console.log(query.sql);
 
         if (err) {
 
@@ -293,7 +298,7 @@ app.get('/getLocations', function (req, res) {
                     device.push(firstPoint);
 
                     deviceLocs[deviceId] = device;
-                    locs.push({ device_id: deviceId, locations: device });
+                    locs.push({ device_id: deviceId, device_name:row.device_name, locations: device });
 
                 } else {
 
@@ -320,6 +325,33 @@ app.get('/getLocations', function (req, res) {
 
 });
 
+app.get('/getDevices', function (req, res) {
+
+    var str = req.query.query || "";
+
+
+
+    var query = connection.query('SELECT * FROM device  where device_name LIKE "%' + str + '%" ;', function (err, rows) {
+
+
+        if (err) {
+
+            console.log(err);
+
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end();
+            return;
+        } else {
+
+            res.send(rows);
+
+        }
+
+
+    });
+
+
+});
 
 app.post('', function (req, res) {
 
@@ -368,7 +400,7 @@ app.post('', function (req, res) {
 
             console.log("bulk inserted");
             res.send({ result: 'ok' });
-	   return;
+            return;
 
         });
 
@@ -468,6 +500,99 @@ app.get('/sorosh', function (req, res) {
 */
 });
 
+/*
+app.get('/sorosh', function (req, res) {
+
+	res.setTimeout(180000, function () {
+	        console.log('Request has timed out.');
+	        res.send(408);
+	});
+
+    var data = req.query.gpsdata.split(",");
+    //0000-00-00 00:00:00
+
+    //0123 45 67 89 01 23
+    //2010 10 10 00 02 09
+    var date = data[3].substring(0, 4) + "-" + data[3].substring(4, 6)
+    + "-" + data[3].substring(6, 8) + " " + data[3].substring(8, 10) +
+    ":" + data[3].substring(10, 12) + ":" + data[3].substring(12, 14);
+
+    console.log("location_device_id, location_lat, location_lon, location_date, location_speed",
+    [req.query.device_id, data[1], data[0], date, data[6]]);
+
+    insertBulk("location", "location_device_id, location_lat, location_lon, location_date, location_speed",
+        [[req.query.device_id, data[1], data[0], date, data[6]]], function (err) {
+
+            if (err) {
+
+                console.log("error bulk inserting");
+                //res.send({ result: 'error' });
+                return;
+            }
+
+            console.log("bulk inserted");
+            //res.send("salam1");
+            return;
+
+        });
+
+    fs.appendFile('sorosh.txt', req.url + "\r\n", function (err) {
+        if (err) console.log(err);
+        console.log('The "data to append" was appended to file!');
+
+
+        soroshStr += (req.url) + "<hr /><br />";
+
+
+
+        res.send("salam");
+
+    });
+
+});
+*/
+
+//app.get('/sorosh', function (req, res) {
+
+//    res.setTimeout(180000, function () {
+//        console.log('Request has timed out.');
+//        res.send(408);
+//    });
+
+//    console.log(req.url);
+
+//    soroshStr += (req.url) + "<hr /><br />";
+
+//    res.status(200).send("salam");
+
+
+//    res.writeHead(200, {
+//        'Content-Type': 'text/plain',
+//    });
+//    res.write("salam");
+//    res.end();
+
+//    /*
+//	var i = 1;
+//	var func = function (i) {
+
+//	    setTimeout(function () {
+//	        console.log('salam' + i);
+//	        res.write("salam" + i);
+
+//		if( i < 10)
+//	        	func(++i);
+//		else
+//			res.end();
+
+//	    }, 3000);
+
+//	};
+
+//	func(i);
+//*/
+//});
+
 app.get('/sorosh2', function (req, res) {
 
     res.send(soroshStr);
@@ -508,28 +633,6 @@ Number.prototype.toRad = function () {
     return this * Math.PI / 180;
 }
 
-
-
-function convertXXXXToXX(xxxx) {
-
-    xxxx = String(xxxx);
-
-    var re = /[0-9]{4}.[0-9]+/;
-    var m;
-
-    if ((m = re.exec(xxxx)) !== null) {
-
-        var xx = Number(xxxx.substring(0, 2));
-
-        var secondPart = Number(xxxx.substring(2, xxxx.length));
-
-        return xx + (secondPart / 60);
-    }
-
-    return;
-}
-
-convertXXXXToXX(5231.585184);
 
 
 
