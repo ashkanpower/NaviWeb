@@ -724,11 +724,6 @@ var io = require('socket.io')(server);
 io.on('connection', function (socket) {
 
     console.log(socket.id + " connected");
-<<<<<<< HEAD
-    socket.emit('news', { hello: 'world' });
-    socket.on("disconnect", function(){
-        console.log(socket.id+ " disconnected");
-=======
 
     function sendHello() {
 
@@ -744,6 +739,6 @@ io.on('connection', function (socket) {
     
     socket.on("disconnect", function () {
         console.log(socket.id + " disconnected");
->>>>>>> origin/master
+
     });
 });
