@@ -727,5 +727,5 @@ io.on('connection', function (socket) {
     socket.emit('news', { hello: 'world' });
     socket.on("disconnect", function(){
         console.log(socket.id+ " disconnected");
-    }
+    });
 });
