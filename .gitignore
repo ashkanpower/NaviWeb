@@ -9,6 +9,7 @@ bin/
 tmp/
 public/tiles
 node_modules
+sorosh.txt
 *.tmp
 *.bak
 *.swp
