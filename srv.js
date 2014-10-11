@@ -736,6 +736,10 @@ io.on('connection', function (socket) {
 
     sendHello();
 
+    socket.on('message', function (m) {
+        console.log(socket.id + " sent "+ m);
+    });
+
     
     socket.on("disconnect", function () {
         console.log(socket.id + " disconnected");
