@@ -11,8 +11,8 @@ port = process.env.port || 8080,
 mysql = require('mysql')
 ;
 
-var serverAddress = "79.175.166.110:" + port;
-//var serverAddress = "127.0.0.1:" + port;
+//var serverAddress = "79.175.166.110:" + port;
+var serverAddress = "127.0.0.1:" + port;
 
 
 var title = "پیشگامان آسیا";
@@ -263,9 +263,21 @@ app.get('/tiles/[0-9]+/[0-9]+/[0-9]+\.png', function (req, res) {
 
 app.get('/getLocations', function (req, res) {
 
-    var deviceId = req.query.device_id;
+    try{
+        var deviceId = JSON.parse(req.query.device_id) || req.query.device_id;
+        var dateFrom = convertToMysqlDate(req.query.date_from) || "";
+        var dateTo = convertToMysqlDate(req.query.date_to) || "";
+    }catch(e){
+        var deviceId = req.query.device_id;
+        var dateFrom = "";
+        var dateTo =  "";
+    }
 
-    var query = connection.query("SELECT * FROM location, device where location_device_id = device_id and location_device_id in (?) ORDER BY location_device_id ASC", [deviceId], function (err, rows) {
+
+    var query = connection.query("SELECT * FROM location, device " +
+        "where location_device_id = device_id and location_device_id in (?) and " +
+        "location_date > (?) and location_date < (?) ORDER BY location_device_id ASC",
+        [deviceId,dateFrom,dateTo], function (err, rows) {
 
 
         console.log(query.sql);
@@ -634,6 +646,61 @@ Number.prototype.toRad = function () {
 }
 
 
+function convertXXXXToXX(xxxx) {
+
+    xxxx = String(xxxx);
+
+    var re = /[0-9]{4}.[0-9]+/;
+    var m;
+
+    if ((m = re.exec(xxxx)) !== null) {
+
+        var xx = Number(xxxx.substring(0, 2));
+
+        var secondPart = Number(xxxx.substring(2, xxxx.length));
+
+        return xx + (secondPart / 60);
+    }
+
+    return;
+}
+
+
+function checkDate(str) {
+
+    str = String(str);
+
+    var re = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.+/;
+    var m;
+
+    if ((m = re.exec(str)) !== null) {
+
+        return true;
+    }
+
+    return false;
+
+}
+
+function convertToMysqlDate(str) {
+
+    str = String(str);
+
+    var re = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.+/;
+    var m;
+
+    if ((m = re.exec(str)) !== null) {
+        //2014-09-30T14:51:02.000Z
+        var date = str.substring(0, 4) + "-" + str.substring(5, 7)
+          + "-" + str.substring(8, 10) + " " + str.substring(11, 13) +
+          ":" + str.substring(14, 16) + ":" + str.substring(17, 19);
+
+        return date;
+    }
+
+    return;
+
+}
 
 
 var server = http.createServer(app);
@@ -647,3 +714,14 @@ server.listen(port, function () {
 
 console.log("file server running");
 
+
+
+////////////////////////////////
+// SOCKET.IO
+//////////////////////////////////
+var io = require('socket.io')(server);
+
+io.on('connection', function (socket) {
+    console.log("someone connected");
+    socket.emit('news', { hello: 'world' });
+});
