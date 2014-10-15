@@ -86,7 +86,7 @@
             } else if (e.keyCode === 13) {
 
                 var elem = $("#device_search-result").find('.search-result-row.hovered').first();
-               // deviceSelected(elem);
+                deviceSelected(elem);
 
             } else {
 
@@ -111,23 +111,21 @@
 
         function deviceSelected(elem) {
 
-
+            isDeviceSelected = true;
             $('#selectedDevice').attr('device_id', elem.attr('deviceId'));
             $('#selectedDeviceName').html(elem.attr('deviceName'));
             $('#selectedDeviceNumber').html(elem.attr('deviceNumber'));
 
-            isDeviceSelected = true;
-
-            routeDevice(elem.attr('deviceId'), $("#datePickerFrom").val(), $("#datePickerTo").val());
-
-            $(".search-result").hide();
+            
         }
 
         $('#searchDevice').click(function () {
+            if (isDeviceSelected) {
 
-            var elem = $("#device_search-result").find('.search-result-row.hovered').first();
+                routeDevice($('#selectedDevice').attr('device_id'), $("#datePickerFrom").val(), $("#datePickerTo").val());
 
-            deviceSelected(elem)
+                $(".search-result").hide();
+            }
         });
 
         
