@@ -850,6 +850,8 @@ io.on('connection', function (socket) {
             // nothing
         } else {
             socketsMap[deviceId] = socket;
+
+            console.log("introduced : ", o.device_id);
         }
     });
     
