@@ -480,6 +480,8 @@ app.post('', function (req, res) {
 var soroshStr = "";
 
 app.get('/sorosh', function (req, res) {
+
+    
   
     //console.log(req.query);
 
@@ -487,10 +489,17 @@ app.get('/sorosh', function (req, res) {
 
 	if(req.query.gpsdata !== ""){
 	
-		res.setTimeout(180000, function () {
+		res.setTimeout(2000, function () {
 	        console.log('Request has timed out.');
 	        res.send(408);
-	});
+
+	       
+		});
+
+        res.on('finish', function () {
+            console.log(req.socket.bytesRead);
+        });
+        
 	
 	var data = req.query.gpsdata.split(",");
 	//0000-00-00 00:00:00
@@ -840,7 +849,7 @@ io.on('connection', function (socket) {
         if (deviceId in socketsMap) {
             // nothing
         } else {
-            a[deviceId] = socket;
+            socketsMap[deviceId] = socket;
         }
     });
     
