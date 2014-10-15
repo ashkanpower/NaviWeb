@@ -852,9 +852,14 @@ io.on('connection', function (socket) {
         } else {
             socketsMap[deviceId] = socket;
 
+<<<<<<< HEAD
 
             console.log("introduced : ", o.device_id);
 
+=======
+			console.log("introduce : " + o.device_id);
+
+>>>>>>> origin/master
         }
     });
     
