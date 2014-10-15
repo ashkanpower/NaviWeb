@@ -371,28 +371,28 @@ app.get('/getDevices', function (req, res) {
 app.get('/sendTask', function (req, res) {
 
 
-    var task = JSON.parse(req.query.task);
+    var task1 = JSON.parse(req.query.task);
+	var deviceId = task1.deviceId;
     var now = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
     task = [
         0, //task_from_lat: 
         0, //task_from_lon: 
-         task.lat,//task_to_lat:
-         task.lon,//task_to_lon:
+         task1.lat,//task_to_lat:
+         task1.lon,//task_to_lon:
          now,
-         task.desc,//task_desc:
-         task.deviceId//task_device_id:
+         task1.desc,//task_desc:
+         deviceId//task_device_id:
     ];
 
     //var taskDb = JSON.stringify(task);
-    console.log(new Date());
 
-    sendTaskToSocket(task.deviceId, {
+    sendTaskToSocket(deviceId, {
         fromLat: 0,
         fromLon: 0,
-        toLat: task.lat,
-        toLon: task.lon,
+        toLat: task1.lat,
+        toLon: task1.lon,
         date: now,
-        description: task.desc
+        description: task1.desc
     });
 
     insertBulk("task", "task_from_lat, task_from_lon, task_to_lat, task_to_lon, task_date, task_desc, task_device_id",
@@ -413,7 +413,7 @@ app.get('/sendTask', function (req, res) {
 
 
 
-    console.log(task);
+   // console.log(task);
 
 });
 
@@ -489,7 +489,7 @@ app.get('/sorosh', function (req, res) {
 
 	if(req.query.gpsdata !== ""){
 	
-		res.setTimeout(2000, function () {
+		res.setTimeout(180000, function () {
 	        console.log('Request has timed out.');
 	        res.send(408);
 
@@ -497,7 +497,8 @@ app.get('/sorosh', function (req, res) {
 		});
 
         res.on('finish', function () {
-            console.log(req.socket.bytesRead);
+            console.log("read : " + req.socket.bytesRead);
+			console.log("write : " + req.socket.bytesWritten);
         });
         
 	
@@ -850,6 +851,8 @@ io.on('connection', function (socket) {
             // nothing
         } else {
             socketsMap[deviceId] = socket;
+			
+			console.log("introduce : " + o.device_id);
         }
     });
     
@@ -862,8 +865,12 @@ io.on('connection', function (socket) {
 function sendTaskToSocket(deviceId, task) {
     var socket;
 
+	
+	
     if (deviceId in socketsMap) {
         
+		console.log(task);
+		
         socket = socketsMap[deviceId];
 
         socket.emit("task", task);
