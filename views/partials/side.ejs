@@ -95,21 +95,28 @@
             }
         });
 
+        var isDeviceSelected = false;
+
         $("#selectedDevice *").attr("disabled", "disabled").off('click');
 
         $(".dispatching").click(function (e) {
-            $('#selectedDevice').css('disable', 'false');
+            if (isDeviceSelected) {
+                //$('#selectedDevice').css('disable', 'false');
 
-            window.startedDispatching = true;
-            $('#map').css('cursor', 'none');
-
+                window.startedDispatching = true;
+                $('#map').css('cursor', 'none');
+            }
         });
         
 
         function deviceSelected(elem) {
 
+
+            $('#selectedDevice').attr('device_id', elem.attr('deviceId'));
             $('#selectedDeviceName').html(elem.attr('deviceName'));
             $('#selectedDeviceNumber').html(elem.attr('deviceNumber'));
+
+            isDeviceSelected = true;
 
             routeDevice(elem.attr('deviceId'), $("#datePickerFrom").val(), $("#datePickerTo").val());
 

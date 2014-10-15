@@ -394,7 +394,7 @@ Lat: <strong><span id="lat2">0.0</span></strong> <br/>
               if (conf != null) {
                   window.startedDispatching = false;
 
-                  task = { deviceId: 2, lat: lonlat.lat, lon: lonlat.lon, desc: conf };
+                  task = { deviceId: $('#selectedDevice').attr('device_id'), lat: lonlat.lat, lon: lonlat.lon, desc: conf };
 
                   $.ajax({
                       url: "http://<%= serverAddress %>/sendTask?task=" + JSON.stringify(task),

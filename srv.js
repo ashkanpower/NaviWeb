@@ -386,6 +386,15 @@ app.get('/sendTask', function (req, res) {
     //var taskDb = JSON.stringify(task);
     console.log(new Date());
 
+    sendTaskToSocket(task.deviceId, {
+        fromLat: 0,
+        fromLon: 0,
+        toLat: task.lat,
+        toLon: task.lon,
+        date: now,
+        description: task.desc
+    });
+
     insertBulk("task", "task_from_lat, task_from_lon, task_to_lat, task_to_lon, task_date, task_desc, task_device_id",
        [task], function (err) {
 
@@ -802,6 +811,8 @@ console.log("file server running");
 //////////////////////////////////
 var io = require('socket.io')(server);
 
+var socketsMap = {};
+
 io.on('connection', function (socket) {
 
     console.log(socket.id + " connected");
@@ -821,9 +832,34 @@ io.on('connection', function (socket) {
         console.log(socket.id + " sent "+ m);
     });
 
+
+    socket.on('introduce', function (o) {
+
+        var deviceId = o.device_id;
+
+        if (deviceId in socketsMap) {
+            // nothing
+        } else {
+            a[deviceId] = socket;
+        }
+    });
     
     socket.on("disconnect", function () {
         console.log(socket.id + " disconnected");
 
     });
 });
+
+function sendTaskToSocket(deviceId, task) {
+    var socket;
+
+    if (deviceId in socketsMap) {
+        
+        socket = socketsMap[deviceId];
+
+        socket.emit("task", task);
+        return true;
+    }
+
+    return false;
+}
