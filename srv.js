@@ -8,7 +8,8 @@ fs = require("fs"),
 mkdirp = require('mkdirp'),
 request = require('request'),
 port = process.env.port || 8080,
-mysql = require('mysql')
+mysql = require('mysql'),
+dateFormat = require('dateformat');
 ;
 
 //var serverAddress = "79.175.166.110:" + port;
@@ -263,11 +264,13 @@ app.get('/tiles/[0-9]+/[0-9]+/[0-9]+\.png', function (req, res) {
 
 app.get('/getLocations', function (req, res) {
 
-    try{
+    try {
         var deviceId = JSON.parse(req.query.device_id) || req.query.device_id;
         var dateFrom = convertToMysqlDate(req.query.date_from) || "";
         var dateTo = convertToMysqlDate(req.query.date_to) || "";
-    }catch(e){
+    } catch (e) {
+        console.log(e);
+
         var deviceId = req.query.device_id;
         var dateFrom = "";
         var dateTo =  "";
@@ -362,6 +365,46 @@ app.get('/getDevices', function (req, res) {
 
     });
 
+
+});
+
+app.get('/sendTask', function (req, res) {
+
+
+    var task = JSON.parse(req.query.task);
+    var now = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+    task = [
+        0, //task_from_lat: 
+        0, //task_from_lon: 
+         task.lat,//task_to_lat:
+         task.lon,//task_to_lon:
+         now,
+         task.desc,//task_desc:
+         task.deviceId//task_device_id:
+    ];
+
+    //var taskDb = JSON.stringify(task);
+    console.log(new Date());
+
+    insertBulk("task", "task_from_lat, task_from_lon, task_to_lat, task_to_lon, task_date, task_desc, task_device_id",
+       [task], function (err) {
+
+           if (err) {
+
+               console.log("error bulk inserting");
+               res.send({ result: 'error' });
+               return;
+           }
+
+           console.log("bulk inserted");
+           res.send({ result: 'ok' });
+           return;
+
+       });
+
+
+
+    console.log(task);
 
 });
 
@@ -686,8 +729,21 @@ function convertToMysqlDate(str) {
 
     str = String(str);
 
-    var re = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.+/;
+    var re = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.*$/;
+
+    var re2 = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    var re3 = /^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/;
+
+    var re4 = /^[0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.*$/;
+    var re5 = /^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.*$/;
+
+    var re6 = /^[0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}$/;
+    var re7 = /^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$/;
+
     var m;
+
+
+    console.log(str);
 
     if ((m = re.exec(str)) !== null) {
         //2014-09-30T14:51:02.000Z
@@ -697,6 +753,31 @@ function convertToMysqlDate(str) {
 
         return date;
     }
+    else if ((m = re2.exec(str)) !== null || (m = re3.exec(str)) !== null) {
+        //2014-09-30T14:51:02.000Z
+        var date = str.substring(0, 4) + "-" + str.substring(5, 7)
+          + "-" + str.substring(8, 10) + " 00:00:00";
+
+        return date;
+    }
+    else if ((m = re4.exec(str)) !== null || (m = re5.exec(str)) !== null) {
+        //2014-09-30T14:51:02.000Z
+        var date = str.substring(0, 4) + "-" + str.substring(5, 7)
+          + "-" + str.substring(8, 10) + " " + str.substring(11, 13) +
+          ":" + str.substring(14, 16) + ":" + str.substring(17, 19);
+
+        return date;
+    }
+
+    else if ((m = re6.exec(str)) !== null || (m = re7.exec(str)) !== null) {
+        //2014-09-30T14:51:02.000Z
+        var date = str.substring(0, 4) + "-" + str.substring(5, 7)
+          + "-" + str.substring(8, 10) + " " + str.substring(11, 13) +
+          ":" + str.substring(14, 16) + ":00";
+
+        return date;
+    }
+
 
     return;
 

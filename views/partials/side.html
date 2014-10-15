@@ -1,118 +1,4 @@
-﻿
-
-
-<style>
-
-
-.side-inputs{
-	margin:15px;
-}
-
-    #search-device {
-         width:100%;
-
-         height:30px;
-
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-        border-radius: 5px;
-    }
-
-    .search-result {
-        min-height:20px;
-       
-        background:white;
-        position:absolute;
-
-        border:solid thin gray;
-
-        -webkit-border-bottom-right-radius: 5px;
-        -webkit-border-bottom-left-radius: 5px;
-        -moz-border-radius-bottomright: 5px;
-        -moz-border-radius-bottomleft: 5px;
-        border-bottom-right-radius: 5px;
-        border-bottom-left-radius: 5px;
-    }
-
-    .search-result-row {
-        height:30px; 
-        text-align:right;
-        vertical-align: middle;
-        padding-top:8px;
-        padding-right:5px;
-        text-overflow: ellipsis;
-        cursor:pointer;
-    }
-
-
-
-        .search-result-row.hovered{
-            background:rgba(134, 245, 248, 0.45);
-            
-        }
-
-        .search-result-row:last-child {
-
-            border-bottom:hidden;
-        }
-
-
-    .selectedDevicePanel {
-        width:100%;
-        margin-top:50px;
-        border:solid thin gray;
-        background:white;
-        
-                -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-        border-radius: 5px;
-            
-    }
-
-    .selectedDeviceRow {
-         width:70%;
-         float:right;
-         margin-top:5px;
-         margin-right:3px;
-
-    }
-
-        .selectedDeviceRow .selectedDeviceRowItem {
-            float:right;
-        }
-        .selectedDeviceRow .selectedDeviceRowTitle {
-                    color:#808080;
-        }
-
-
-    .dispatching {
-        width:24%;
-        height:50px;
-        float:left;
-        background:url('img/dispatching.png') #ededed;
-        background-position:50% 0px;
-        background-size:50px 50px;
-        cursor:pointer;
-        border:solid 1px #d1d1d1;
-
-        -webkit-border-top-left-radius: 5px;
-        -webkit-border-bottom-left-radius: 5px;
-        -moz-border-radius-topleft: 5px;
-        -moz-border-radius-bottomleft: 5px;
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-    }
-
-    .dispatching:hover {
-        background:url('img/dispatching.png') #dedede;
-        background-position:50% 0px;
-        background-size:50px 50px;
-    }
-
-</style>
-
-
-<Script>
+﻿<Script>
 
     $(document).ready(function () {
         
@@ -200,7 +86,7 @@
             } else if (e.keyCode === 13) {
 
                 var elem = $("#device_search-result").find('.search-result-row.hovered').first();
-                deviceSelected(elem);
+               // deviceSelected(elem);
 
             } else {
 
@@ -209,7 +95,15 @@
             }
         });
 
+        $("#selectedDevice *").attr("disabled", "disabled").off('click');
 
+        $(".dispatching").click(function (e) {
+            $('#selectedDevice').css('disable', 'false');
+
+            window.startedDispatching = true;
+            $('#map').css('cursor', 'none');
+
+        });
         
 
         function deviceSelected(elem) {
@@ -217,13 +111,32 @@
             $('#selectedDeviceName').html(elem.attr('deviceName'));
             $('#selectedDeviceNumber').html(elem.attr('deviceNumber'));
 
-            routeDevice(elem.attr('deviceId'));
+            routeDevice(elem.attr('deviceId'), $("#datePickerFrom").val(), $("#datePickerTo").val());
 
             $(".search-result").hide();
         }
 
+        $('#searchDevice').click(function () {
 
+            var elem = $("#device_search-result").find('.search-result-row.hovered').first();
 
+            deviceSelected(elem)
+        });
+
+        
+        $("#datePickerFrom").datetimepicker({
+            format: 'Y/m/d H:i',
+            onChangeDateTime:function(dp,$input){
+            //
+        }
+        });
+
+        $("#datePickerTo").datetimepicker({
+            format: 'Y/m/d H:i',
+            onChangeDateTime: function (dp, $input) {
+                //
+            }
+        });
 
 
     });
@@ -234,18 +147,22 @@
 <div class="side-inputs">
 
 <input type="search" id="search-device" />
+
 <div class="search-result" id="device_search-result"></div>
 
+از تاریخ : <input type="text" id="datePickerFrom" placeholder="date"  style="direction:ltr"/> <br />
+تا تاریخ : <input type="text" id="datePickerTo" placeholder="date"  style="direction:ltr"/>
 
 
-<div id="selectedDevice" class="selectedDevicePanel">
+     <div id="selectedDevice" class="selectedDevicePanel">
+
 
     <div class="selectedDeviceRow">
         <span class="selectedDeviceRowItem selectedDeviceRowTitle">نام دستگاه :</span>
         <span class="selectedDeviceRowItem" id="selectedDeviceName"></span>
     </div>
 
-   <div class="dispatching">
+   <div class="dispatching" device_id="">
 
     </div>
 
@@ -258,7 +175,9 @@
     <br style="clear:both" />
         
 </div>
+    
+    <br />
 
-
+        <button id="searchDevice" title="search" >search</button>
 
 </div >

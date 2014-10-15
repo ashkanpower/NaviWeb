@@ -9,16 +9,22 @@
   <meta name="author" content="SitePoint">
 
 
-	<script type="text/javascript"  src="/js/jquery.js"></script>
+	<script type="text/javascript"  src="js/jquery.js"></script>
 
-    <script type="text/javascript"  src="js/OpenLayers.js" type="text/javascript"></script>
+    <script type="text/javascript"  src="js/OpenLayers.js"></script>
 
 
     <link type="text/css" rel="stylesheet" href="js/jquery.qtip.min.css" />
     <script type="text/javascript" src="js/jquery.qtip.min.js"></script>
     <script type="text/javascript" src="js/randomColor.js"></script>
 
-<script type="text/javascript" src="js/jquery.autocomplete.js"></script>
+     <link rel="stylesheet" type="text/css" href="js/jquery.datetimepicker.css" />
+    <script src="js/jquery.datetimepicker.js"></script>
+
+      <script src="js/jquery-ui.js"></script>
+     <link rel="stylesheet" href="js/jquery-ui.css" />
+
+  
   <!--[if lt IE 9]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
@@ -36,7 +42,7 @@
             direction:rtl;
         }
 
-        header {
+        nav {
             width:100%;
             height:40px;
             background:url('/img/background-texture.png') #353535;
@@ -60,6 +66,143 @@
             height:100%;
             background-position:center
         }
+
+            .map{
+    width:100%;
+        height:100%;
+        background:#f1eee8;
+        direction:ltr;
+    }
+
+    .olTileImage {
+        -webkit-transition: opacity 0.1s linear;
+        -moz-transition: opacity 0.1s linear;
+        -o-transition: opacity 0.1s linear;
+        transition: opacity 0.1s linear;
+    }
+
+
+      .confirmBox {
+      
+          width:100px;
+          height:100px;
+          position:absolute;
+          top:0px;
+          left:0px;
+            background:#ffd800;
+            display:none;
+      
+      }
+
+      
+.side-inputs{
+	margin:15px;
+}
+
+    #search-device {
+         width:100%;
+
+         height:30px;
+
+         margin-bottom:50px;
+
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+
+    .search-result {
+        min-height:20px;
+       
+        background:white;
+        position:absolute;
+
+        border:solid thin gray;
+
+        -webkit-border-bottom-right-radius: 5px;
+        -webkit-border-bottom-left-radius: 5px;
+        -moz-border-radius-bottomright: 5px;
+        -moz-border-radius-bottomleft: 5px;
+        border-bottom-right-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .search-result-row {
+        height:30px; 
+        text-align:right;
+        vertical-align: middle;
+        padding-top:8px;
+        padding-right:5px;
+        text-overflow: ellipsis;
+        cursor:pointer;
+    }
+
+
+
+        .search-result-row.hovered{
+            background:rgba(134, 245, 248, 0.45);
+            
+        }
+
+        .search-result-row:last-child {
+
+            border-bottom:hidden;
+        }
+
+
+    .selectedDevicePanel {
+        width:100%;
+        margin-top:20px;
+        border:solid thin gray;
+        background:white;
+        
+                -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+            
+    }
+
+    .selectedDeviceRow {
+         width:70%;
+         float:right;
+         margin-top:5px;
+         margin-right:3px;
+
+    }
+
+        .selectedDeviceRow .selectedDeviceRowItem {
+            float:right;
+        }
+        .selectedDeviceRow .selectedDeviceRowTitle {
+                    color:#808080;
+        }
+
+
+    .dispatching {
+        width:24%;
+        height:50px;
+        float:left;
+        background:url('img/dispatching.png') #ededed;
+        background-position:50% 0px;
+        background-size:50px 50px;
+        cursor:pointer;
+        border:solid 1px #d1d1d1;
+
+        -webkit-border-top-left-radius: 5px;
+        -webkit-border-bottom-left-radius: 5px;
+        -moz-border-radius-topleft: 5px;
+        -moz-border-radius-bottomleft: 5px;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .dispatching:hover {
+        background:url('img/dispatching.png') #dedede;
+        background-position:50% 0px;
+        background-size:50px 50px;
+
+    }
+
     </style>
 </head>
 
@@ -80,19 +223,19 @@
     </script>
 
 
-    <header>
+    <nav>
             <%= include ../partials/header %>
-    </header>
+    </nav>
 
     <section class="map-detail">
-
-        <aside class="body">
+  
+        <div class="body">
             <%= include ../partials/body %>
-        </aside>
+        </div>
 
-        <aside class="side-bar">
+        <div class="side-bar">
             <%= include ../partials/side %>
-       </aside>
+       </div>
         <br style="clear:both;" />
 
         </section>

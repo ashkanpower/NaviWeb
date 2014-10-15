@@ -1,25 +1,4 @@
-
-  <style>
-
-    .map{
-    width:100%;
-        height:100%;
-        background:#f1eee8;
-        direction:ltr;
-    }
-
-    .olTileImage {
-        -webkit-transition: opacity 0.1s linear;
-        -moz-transition: opacity 0.1s linear;
-        -o-transition: opacity 0.1s linear;
-        transition: opacity 0.1s linear;
-    }
-
-</style>
-
-
-
-<div id="map" class="map"></div>
+﻿<div id="map" class="map"></div>
 
 <table class="mouse_location_sample">
     <tr>
@@ -36,7 +15,7 @@ Lat: <strong><span id="lat2">0.0</span></strong> <br/>
 </tr>
 </table>
 
-<button id="refresh" type="button" style="position:absolute; bottom:20px; right:20px; z-index:20000; padding:20px;">refresh</button>
+
 
 <script type="text/javascript">
 
@@ -321,13 +300,16 @@ Lat: <strong><span id="lat2">0.0</span></strong> <br/>
 
   $(document).ready(function () {
 
-      window.routeDevice = function(id) {
+
+      
+
+      window.routeDevice = function(id, date_from, date_to) {
           
           removePointLayer();
           removeLineLayer();
 
           $.ajax({
-              url: "http://<%= serverAddress %>/getLocations?device_id=" + id,
+              url: "http://<%= serverAddress %>/getLocations?device_id=" + id + "&date_from=" + date_from + "&date_to=" + date_to,
               type: "GET",
               success: function (data, textStatus, jqXHR) {
 
@@ -351,7 +333,6 @@ Lat: <strong><span id="lat2">0.0</span></strong> <br/>
 
                           lat = loc.location_lat;
                           lon = loc.location_lon;
-
                           loc.lat = lat;
                           loc.lon = lon;
 
@@ -377,6 +358,86 @@ Lat: <strong><span id="lat2">0.0</span></strong> <br/>
           });
 
 
+      }
+
+      map.events.register('mousemove', map, mouseMoveListener);
+      map.events.register('click', map, function (event) {
+
+          if (window.startedDispatching) {
+
+
+              window.startedDispatching = false;
+
+              var lonlat = map.getLonLatFromPixel(event.xy);
+              lonlat.transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+
+              
+              //console.log($('#' + dispatchingLayer.id));
+              //$('#map').css('cursor', '');
+
+              //var conf = $($('.confirmBox').clone());
+              
+
+              //conf.css({ left: (event.xy.x -( conf.width() / 2)), top: event.xy.y });
+              //console.log(conf.width());
+
+
+              //$('#' + dispatchingLayer.id).append(conf);
+
+              //conf.fadeIn();
+
+              $('#map').css('cursor', '');
+             // $('#' + dispatchingMarker.geometry.id).qtip({ show: false })
+                
+              var conf = prompt("لطفا جزئیات ماموریت را مشخص کنید", "");
+
+              if (conf != null) {
+                  window.startedDispatching = false;
+
+                  task = { deviceId: 2, lat: lonlat.lat, lon: lonlat.lon, desc: conf };
+
+                  $.ajax({
+                      url: "http://<%= serverAddress %>/sendTask?task=" + JSON.stringify(task),
+                      type: "GET",
+                      success: function (data, textStatus, jqXHR) {
+
+                      }
+                  });
+              }
+              
+          }
+
+      });
+
+      var dispatchingLayer = new OpenLayers.Layer.Vector('pointLayer');////////////////////
+      map.addLayer(dispatchingLayer);
+      var dispatchingMarker;
+
+      function mouseMoveListener(event) {
+          var lonlat = map.getLonLatFromPixel(event.xy);
+          lonlat.transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+
+          if (window.startedDispatching) {
+
+              dispatchingLayer.destroyFeatures();
+
+              var fpoint = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat).transform(
+                  new OpenLayers.Projection("EPSG:4326"),
+                  new OpenLayers.Projection("EPSG:900913")
+              );
+
+              dispatchingMarker = new OpenLayers.Feature.Vector(fpoint, {}, {
+                  externalGraphic: 'img/current_point.png',
+                  graphicYOffset: -28,
+                  graphicWidth: 30,
+                  graphicHeight: 30,
+                  fillOpacity: 1
+              });
+
+              dispatchingLayer.addFeatures(dispatchingMarker);
+
+              //console.log(lonlat);
+          }
       }
 
   });
