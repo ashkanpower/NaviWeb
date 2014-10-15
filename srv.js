@@ -12,8 +12,8 @@ mysql = require('mysql'),
 dateFormat = require('dateformat');
 ;
 
-//var serverAddress = "79.175.166.110:" + port;
-var serverAddress = "127.0.0.1:" + port;
+var serverAddress = "79.175.166.110:" + port;
+//var serverAddress = "127.0.0.1:" + port;
 
 
 var title = "پیشگامان آسیا";
