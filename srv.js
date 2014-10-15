@@ -278,7 +278,7 @@ app.get('/getLocations', function (req, res) {
 
 
     var query = connection.query("SELECT * FROM location, device " +
-        "where location.device_id = device_id and device_id in (?) and " +
+        "where location_device_id = device_id and location_device_id in (?) and " +
         "location_date > (?) and location_date < (?) ORDER BY location_device_id ASC",
         [deviceId,dateFrom,dateTo], function (err, rows) {
 
@@ -852,14 +852,9 @@ io.on('connection', function (socket) {
         } else {
             socketsMap[deviceId] = socket;
 
-<<<<<<< HEAD
 
-            console.log("introduced : ", o.device_id);
-
-=======
 			console.log("introduce : " + o.device_id);
 
->>>>>>> origin/master
         }
     });
     
