@@ -12,8 +12,8 @@ mysql = require('mysql'),
 dateFormat = require('dateformat');
 ;
 
-var serverAddress = "79.175.166.110:" + port;
-//var serverAddress = "127.0.0.1:" + port;
+//var serverAddress = "79.175.166.110:" + port;
+var serverAddress = "127.0.0.1:" + port;
 
 
 var title = "پیشگامان آسیا";
@@ -851,7 +851,7 @@ io.on('connection', function (socket) {
             // nothing
         } else {
             socketsMap[deviceId] = socket;
-
+            socket.deviceId = deviceId;
 
 			console.log("introduce : " + o.device_id);
 
@@ -861,6 +861,7 @@ io.on('connection', function (socket) {
     socket.on("disconnect", function () {
         console.log(socket.id + " disconnected");
 
+        socketsMap.removeItem(socket.deviceId);
     });
 });
 
@@ -881,3 +882,14 @@ function sendTaskToSocket(deviceId, task) {
 
     return false;
 }
+
+
+
+Object.prototype.removeItem = function (key) {
+    if (!this.hasOwnProperty(key))
+        return
+    if (isNaN(parseInt(key)) || !(this instanceof Array))
+        delete this[key]
+    else
+        this.splice(key, 1)
+};

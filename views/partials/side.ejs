@@ -5,10 +5,17 @@
         $(".search-result").hide();
 
         //$('#search-device').keyup(loadResult);
+        $('#search-device').click(function () {
+
+            if (deviceSelected)
+                $('#search-device').val('');
+        });
+
         $('#search-device').click(loadResult);
         $('#search-device').change(loadResult);
 
         function loadResult(e) {
+
 
             $.ajax({
                 url: "http://<%= serverAddress %>/getDevices?query=" + $('#search-device').val(),
@@ -45,6 +52,7 @@
 
                     $(".search-result-row").click(function () {
                         deviceSelected($(this));
+                        $("#device_search-result").fadeOut();
                     });
                 }
             });
@@ -55,11 +63,14 @@
 
         $('#search-device').focusout(function () {
             $("#device_search-result").fadeOut();
+
+            if (deviceSelected)
+                $('#search-device').val($('#selectedDeviceName').html());
         });
 
         $('#search-device').keyup(function (e) {
 
-
+            /*
             if (e.keyCode === 40) {
 
                 var elem = $("#device_search-result").find('.search-result-row.hovered').first();
@@ -83,10 +94,11 @@
                 elem.removeClass('hovered');
                 pre.addClass('hovered');
                 
-            } else if (e.keyCode === 13) {
+            } else */ if (e.keyCode === 13) {
 
                 var elem = $("#device_search-result").find('.search-result-row.hovered').first();
                 deviceSelected(elem);
+                $("#device_search-result").fadeOut();
 
             } else {
 
@@ -116,7 +128,7 @@
             $('#selectedDeviceName').html(elem.attr('deviceName'));
             $('#selectedDeviceNumber').html(elem.attr('deviceNumber'));
 
-            
+            $('#search-device').val(elem.attr('deviceName'));
         }
 
         $('#searchDevice').click(function () {
